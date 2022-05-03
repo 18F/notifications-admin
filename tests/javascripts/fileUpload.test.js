@@ -116,7 +116,12 @@ describe('File upload', () => {
 
     test("It should add a link to cancel the upload by reloading the page", () => {
 
-      expect(form.querySelector("a[href='']")).not.toBeNull();
+      var cancelLink = form.querySelector("a[href='']");
+
+      expect(cancelLink).not.toBeNull();
+
+      // the cancel link replaces the 'upload' button so needs focusing so focus is not lost
+      expect(document.activeElement).toBe(cancelLink);
 
     });
 
