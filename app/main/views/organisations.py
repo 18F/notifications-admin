@@ -596,6 +596,35 @@ def edit_organisation_billing_details(org_id):
     )
 
 
+@main.route("/organisations/<uuid:org_id>/settings/archive", methods=['GET', 'POST'])
+@user_is_platform_admin
+def archive_organisation(org_id):
+    if not current_organisation.active:
+        abort(403)
+
+    if request.method == 'POST':
+        cached_org_user_ids = [user.id for user in current_organisation.team_members]
+        try:
+            organisations_client.archive_organisation(org_id, cached_org_user_ids)
+        except HTTPError as e:
+            if 'team members' in e.message:
+                flash('Can’t archive an organisation with team members')
+            elif 'services' in e.message:
+                flash('Can’t archive an organisation with services')
+            else:
+                raise e
+            return organisation_settings(org_id)
+
+        flash(f'‘{current_organisation.name}’ was deleted', 'default_with_tick')
+        return redirect(url_for('.choose_account'))
+
+    flash(
+        f'Are you sure you want to delete ‘{current_organisation.name}’? There’s no way to undo this.',
+        'delete',
+    )
+    return organisation_settings(org_id)
+
+
 @main.route("/organisations/<uuid:org_id>/billing")
 @user_is_platform_admin
 def organisation_billing(org_id):
